@@ -133,7 +133,7 @@ export default function ConversationPage() {
                                         rel="noopener noreferrer"
                                         className="text-pink-500 text-xs hover:underline block mb-1"
                                     >
-                                        📎 Attachment
+                                        Attachment
                                     </a>
                                 )}
 
@@ -143,7 +143,7 @@ export default function ConversationPage() {
 
                                 {msg.toolCalls && (
                                     <div className="mt-1.5 text-[10px] text-pink-400 font-medium">
-                                        ⚡ {Array.isArray(msg.toolCalls) ? msg.toolCalls.length : 1} tool call(s)
+                                        {Array.isArray(msg.toolCalls) ? msg.toolCalls.length : 1} tool call(s)
                                     </div>
                                 )}
 

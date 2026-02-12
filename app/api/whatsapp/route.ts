@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
         // Still return 200 to Twilio so it doesn't retry
         const errMsg = (error.message || 'Unknown error').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         return new NextResponse(
-            `<Response><Message>I'm sorry, I ran into a problem processing your message. Please try again in a moment! 🙏\n\nDebug: ${errMsg}</Message></Response>`,
+            `<Response><Message>Sorry, I ran into a problem. Please try again in a moment.\n\nDebug: ${errMsg}</Message></Response>`,
             { status: 200, headers: { 'Content-Type': 'text/xml' } }
         );
     }
