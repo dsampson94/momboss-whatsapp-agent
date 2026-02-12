@@ -19,14 +19,6 @@ import {
 import logger from '@/app/lib/logger';
 
 export async function POST(request: NextRequest) {
-    // Safety: only in development
-    if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json(
-            { error: 'Test endpoint disabled in production' },
-            { status: 403 }
-        );
-    }
-
     const startTime = Date.now();
 
     try {
@@ -103,10 +95,6 @@ export async function POST(request: NextRequest) {
  * GET /api/test-chat — Returns a WhatsApp-style chat UI for testing
  */
 export async function GET() {
-    if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
-    }
-
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>

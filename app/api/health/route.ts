@@ -50,7 +50,9 @@ export async function GET() {
         database_url: !!process.env.DATABASE_URL,
     };
 
-    const statusCode = checks.status === 'ok' ? 200 : 503;
+    // Only return 503 if critical services (DB, AI) are down
+    const critical = checks.database?.connected && checks.config?.openai_key;
+    const statusCode = critical ? 200 : 503;
 
     logger.info('[Health] Health check', { status: checks.status });
 
