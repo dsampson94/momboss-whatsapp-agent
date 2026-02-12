@@ -42,7 +42,7 @@ export async function GET() {
 
     // Check env vars are set (don't expose values)
     checks.config = {
-        anthropic_key: !!process.env.ANTHROPIC_API_KEY,
+        openai_key: !!process.env.OPENAI_API_KEY,
         twilio_sid: !!process.env.TWILIO_ACCOUNT_SID,
         twilio_token: !!process.env.TWILIO_AUTH_TOKEN,
         wordpress_url: !!process.env.WORDPRESS_URL,

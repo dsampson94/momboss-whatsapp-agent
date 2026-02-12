@@ -1,41 +1,48 @@
 @import "tailwindcss";
 
 :root {
-    --color-primary: #7c3aed;
-    --color-primary-light: #a78bfa;
-    --color-primary-dark: #5b21b6;
-    --color-accent: #f59e0b;
-    --color-success: #10b981;
-    --color-danger: #ef4444;
-    --color-bg: #faf5ff;
-    --color-surface: #ffffff;
-    --color-text: #1f2937;
-    --color-text-muted: #6b7280;
+    --pink: #e91e8c;
+    --pink-light: #f472b6;
+    --pink-dark: #be185d;
+    --pink-subtle: #fdf2f8;
+    --dark: #1a1a2e;
+    --dark-surface: #16213e;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --green: #10b981;
+    --red: #ef4444;
 }
 
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--color-bg);
-    color: var(--color-text);
+    background: var(--gray-50);
+    color: var(--gray-800);
+    -webkit-font-smoothing: antialiased;
 }
 
-/* WhatsApp-style chat bubble for the dashboard */
+/* Chat bubbles */
 .chat-bubble-user {
-    background: #dcf8c6;
-    border-radius: 12px 12px 0 12px;
-    padding: 8px 12px;
-    max-width: 80%;
+    background: var(--pink);
+    color: white;
+    border-radius: 16px 16px 0 16px;
+    padding: 10px 14px;
+    max-width: 85%;
     margin-left: auto;
 }
 
 .chat-bubble-agent {
     background: white;
-    border-radius: 12px 12px 12px 0;
-    padding: 8px 12px;
-    max-width: 80%;
-    border: 1px solid #e5e7eb;
+    border-radius: 16px 16px 16px 0;
+    padding: 10px 14px;
+    max-width: 85%;
+    border: 1px solid var(--gray-200);
 }
+

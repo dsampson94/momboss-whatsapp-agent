@@ -1,8 +1,8 @@
 /**
  * Tool Executor
  *
- * Maps Claude's tool calls to actual WordPress/WooCommerce/Dokan API functions.
- * This is the bridge between "Claude wants to call create_product" and
+ * Maps GPT's tool calls to actual WordPress/WooCommerce/Dokan API functions.
+ * This is the bridge between "GPT wants to call create_product" and
  * actually calling the WordPress API.
  */
 
@@ -16,7 +16,7 @@ import logger from './logger';
 
 /**
  * Execute a tool by name with given input parameters.
- * Returns the result that gets sent back to Claude.
+ * Returns the result that gets sent back to GPT.
  */
 export async function executeTool(
     toolName: string,

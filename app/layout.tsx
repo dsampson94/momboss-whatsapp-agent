@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'MomBoss WhatsApp Agent',
+    title: 'MomBoss Agent',
     description: 'AI-powered WhatsApp assistant for MomBoss marketplace vendors',
     icons: { icon: '/favicon.ico' },
 };
@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className="min-h-screen bg-[#faf5ff]">
+            <body className="min-h-screen bg-gray-50">
                 {children}
             </body>
         </html>

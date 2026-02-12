@@ -2,7 +2,7 @@
  * Conversation Manager
  *
  * Manages conversation state in the database.
- * Stores messages, retrieves history for Claude context,
+ * Stores messages, retrieves history for GPT context,
  * and handles conversation lifecycle.
  */
 
@@ -127,11 +127,11 @@ export async function storeMessage(params: {
 }
 
 // ============================================
-// GET CONVERSATION HISTORY (FOR CLAUDE CONTEXT)
+// GET CONVERSATION HISTORY (FOR GPT CONTEXT)
 // ============================================
 
 /**
- * Build the conversation context that gets sent to Claude.
+ * Build the conversation context that gets sent to GPT.
  * Retrieves recent message history and vendor link info.
  */
 export async function getConversationContext(
@@ -164,7 +164,7 @@ export async function getConversationContext(
         where: { whatsappNumber },
     });
 
-    // Convert messages to Claude format (reverse to chronological order)
+    // Convert messages to GPT format (reverse to chronological order)
     const messageHistory = conversation.messages
         .reverse()
         .filter((m) => m.content) // skip empty content

@@ -2,17 +2,17 @@
  * MomBoss AI Agent Engine
  *
  * This is the BRAIN of the operation. It takes an incoming WhatsApp message,
- * builds context, sends it to Claude with tool definitions, executes any tool
- * calls Claude makes, and returns the final response.
+ * builds context, sends it to GPT with tool definitions, executes any tool
+ * calls GPT makes, and returns the final response.
  *
  * Flow:
  *   1. Receive message → build conversation context
- *   2. Send to Claude with system prompt + tools
- *   3. If Claude calls tools → execute them → send results back to Claude
+ *   2. Send to GPT with system prompt + tools
+ *   3. If GPT calls tools → execute them → send results back to GPT
  *   4. Get final text response → return it
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import logger from './logger';
 import { agentTools } from './tools';
 import {
@@ -26,11 +26,11 @@ import { executeTool } from './tool-executor';
 // CONFIG
 // ============================================
 
-const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
+const MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
 const MAX_TOKENS = 1024;
 const MAX_TOOL_ROUNDS = 5; // Safety limit: max tool-call rounds per message
 
@@ -137,12 +137,16 @@ export async function processMessage(
         // 1. Get conversation context
         const context = await getConversationContext(whatsappNumber);
 
-        // 2. Build the messages array for Claude
+        // 2. Build the messages array for OpenAI
         const systemPrompt = buildSystemPrompt(context);
 
-        // Start with conversation history, then add the new message
-        const messages: Anthropic.MessageParam[] = [
-            ...context.messageHistory,
+        // Start with system message, then conversation history, then the new message
+        const messages: OpenAI.ChatCompletionMessageParam[] = [
+            { role: 'system', content: systemPrompt },
+            ...context.messageHistory.map((msg: any) => ({
+                role: msg.role as 'user' | 'assistant',
+                content: msg.content as string,
+            })),
         ];
 
         // Add the current user message
@@ -152,7 +156,7 @@ export async function processMessage(
         }
         messages.push({ role: 'user', content: currentMessageContent });
 
-        // 3. Call Claude in a tool-use loop
+        // 3. Call GPT in a tool-use loop
         const allToolCalls: Array<{ name: string; input: any; result: any }> = [];
         let totalTokens = 0;
         let finalReply = '';
@@ -161,111 +165,102 @@ export async function processMessage(
         while (rounds < MAX_TOOL_ROUNDS) {
             rounds++;
 
-            const response = await anthropic.messages.create({
+            const response = await openai.chat.completions.create({
                 model: MODEL,
                 max_tokens: MAX_TOKENS,
-                system: systemPrompt,
-                tools: agentTools,
                 messages,
+                tools: agentTools,
+                tool_choice: 'auto',
             });
 
-            totalTokens += (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
+            const choice = response.choices[0];
+            const assistantMessage = choice.message;
 
-            // Check if Claude wants to use tools
-            const toolUseBlocks = response.content.filter(
-                (block) => block.type === 'tool_use'
-            );
+            totalTokens += (response.usage?.total_tokens || 0);
 
-            const textBlocks = response.content.filter(
-                (block) => block.type === 'text'
-            );
-
-            // If there are text blocks, collect them
-            if (textBlocks.length > 0) {
-                finalReply = textBlocks
-                    .map((b) => (b.type === 'text' ? b.text : ''))
-                    .join('\n')
-                    .trim();
+            // Collect text content if present
+            if (assistantMessage.content) {
+                finalReply = assistantMessage.content.trim();
             }
 
+            // Check if GPT wants to use tools
+            const toolCallsInResponse = assistantMessage.tool_calls || [];
+
             // If no tool calls, we're done!
-            if (toolUseBlocks.length === 0 || response.stop_reason === 'end_turn') {
-                // If Claude stopped without text (unlikely), provide a fallback
+            if (toolCallsInResponse.length === 0 || choice.finish_reason === 'stop') {
                 if (!finalReply) {
                     finalReply = "I'm here to help! What can I do for you today? 😊";
                 }
                 break;
             }
 
-            // Execute tool calls
-            // Add assistant's full response to messages
-            messages.push({ role: 'assistant', content: response.content });
+            // Add assistant message (with tool_calls) to messages
+            messages.push(assistantMessage);
 
-            const toolResults: Anthropic.ToolResultBlockParam[] = [];
-
-            for (const toolBlock of toolUseBlocks) {
-                if (toolBlock.type !== 'tool_use') continue;
-
-                const toolStartTime = Date.now();
-                logger.info(`[Agent] Executing tool: ${toolBlock.name}`, { input: toolBlock.input });
+            // Execute each tool call and add results
+            for (const toolCall of toolCallsInResponse) {
+                if (toolCall.type !== 'function') continue;
+                const toolName = toolCall.function.name;
+                let toolInput: Record<string, any> = {};
 
                 try {
-                    const result = await executeTool(
-                        toolBlock.name,
-                        toolBlock.input as Record<string, any>,
-                        context
-                    );
+                    toolInput = JSON.parse(toolCall.function.arguments);
+                } catch {
+                    toolInput = {};
+                }
 
+                const toolStartTime = Date.now();
+                logger.info(`[Agent] Executing tool: ${toolName}`, { input: toolInput });
+
+                try {
+                    const result = await executeTool(toolName, toolInput, context);
                     const duration = Date.now() - toolStartTime;
 
                     allToolCalls.push({
-                        name: toolBlock.name,
-                        input: toolBlock.input,
+                        name: toolName,
+                        input: toolInput,
                         result,
                     });
 
                     // Log the action
                     await logAction({
                         whatsappNumber,
-                        action: toolBlock.name,
-                        toolName: toolBlock.name,
-                        input: toolBlock.input,
+                        action: toolName,
+                        toolName,
+                        input: toolInput,
                         output: result,
                         success: result?.success !== false,
                         errorMessage: result?.error,
                         durationMs: duration,
                     });
 
-                    toolResults.push({
-                        type: 'tool_result',
-                        tool_use_id: toolBlock.id,
+                    // Add tool result to messages
+                    messages.push({
+                        role: 'tool',
+                        tool_call_id: toolCall.id,
                         content: JSON.stringify(result),
                     });
                 } catch (error: any) {
                     const duration = Date.now() - toolStartTime;
-                    logger.error(`[Agent] Tool execution failed: ${toolBlock.name}`, { error });
+                    logger.error(`[Agent] Tool execution failed: ${toolName}`, { error });
 
                     await logAction({
                         whatsappNumber,
-                        action: toolBlock.name,
-                        toolName: toolBlock.name,
-                        input: toolBlock.input,
+                        action: toolName,
+                        toolName,
+                        input: toolInput,
                         success: false,
                         errorMessage: error.message,
                         durationMs: duration,
                     });
 
-                    toolResults.push({
-                        type: 'tool_result',
-                        tool_use_id: toolBlock.id,
+                    messages.push({
+                        role: 'tool',
+                        tool_call_id: toolCall.id,
                         content: JSON.stringify({ success: false, error: error.message }),
-                        is_error: true,
                     });
                 }
             }
-
-            // Send tool results back to Claude
-            messages.push({ role: 'user', content: toolResults });
         }
 
         const totalDuration = Date.now() - startTime;

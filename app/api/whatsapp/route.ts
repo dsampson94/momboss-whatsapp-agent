@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
             body[key] = value.toString();
         });
 
-        // Validate Twilio signature in production
-        if (process.env.NODE_ENV === 'production') {
+        // Validate Twilio signature in production (skip if no auth token set)
+        if (process.env.NODE_ENV === 'production' && process.env.TWILIO_AUTH_TOKEN) {
             const signature = request.headers.get('x-twilio-signature') || '';
             const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp`;
             if (!validateTwilioSignature(signature, url, body)) {

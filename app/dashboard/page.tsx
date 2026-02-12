@@ -61,130 +61,120 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-purple-600 text-lg animate-pulse">Loading dashboard...</div>
+                <div className="text-pink-500 text-sm animate-pulse">Loading...</div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#faf5ff]">
+        <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <header className="bg-white border-b border-purple-100 px-6 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/" className="text-2xl font-bold text-purple-700">
-                            🤱💼 MomBoss Agent
+            <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3">
+                <div className="max-w-5xl mx-auto flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Link href="/" className="text-lg font-bold text-gray-900 tracking-tight">
+                            <span className="text-pink-500">MB</span> Agent
                         </Link>
-                        <span className="text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                            Dashboard
+                        <span className="text-[10px] bg-pink-50 text-pink-500 px-1.5 py-0.5 rounded font-medium">
+                            DASH
                         </span>
                     </div>
-                    <Link
-                        href="/api/health"
-                        className="text-sm text-gray-500 hover:text-purple-600 transition-colors"
-                    >
-                        🏥 Health Check
-                    </Link>
+                    <div className="flex gap-2">
+                        <Link
+                            href="/api/test-chat"
+                            className="text-xs text-gray-500 hover:text-gray-900 px-2 py-1 transition-colors"
+                        >
+                            Test Chat
+                        </Link>
+                        <Link
+                            href="/api/health"
+                            className="text-xs text-gray-500 hover:text-gray-900 px-2 py-1 transition-colors"
+                        >
+                            Health
+                        </Link>
+                    </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto p-6 space-y-8">
-                {/* Stats Grid */}
+            <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+                {/* Stats */}
                 {stats && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatCard
-                            label="Total Conversations"
-                            value={stats.conversations.total}
-                            sub={`${stats.conversations.active} active`}
-                            emoji="💬"
-                        />
-                        <StatCard
-                            label="Messages Today"
-                            value={stats.messages.today}
-                            sub={`${stats.messages.thisWeek} this week`}
-                            emoji="📨"
-                        />
-                        <StatCard
-                            label="Tool Actions"
-                            value={stats.actions.total}
-                            sub={`${stats.actions.successRate} success`}
-                            emoji="⚡"
-                        />
-                        <StatCard
-                            label="Verified Vendors"
-                            value={stats.vendors.verified}
-                            sub="linked accounts"
-                            emoji="✅"
-                        />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <StatCard label="Conversations" value={stats.conversations.total} sub={`${stats.conversations.active} active`} />
+                        <StatCard label="Messages Today" value={stats.messages.today} sub={`${stats.messages.thisWeek} this week`} />
+                        <StatCard label="Tool Calls" value={stats.actions.total} sub={`${stats.actions.successRate} ok`} />
+                        <StatCard label="Vendors" value={stats.vendors.verified} sub="verified" />
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Recent Conversations */}
-                    <section>
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Conversations</h2>
-                        <div className="bg-white rounded-2xl shadow-sm border border-purple-100 divide-y divide-gray-100">
+                {/* Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    {/* Conversations — takes 3/5 */}
+                    <section className="lg:col-span-3">
+                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Conversations</h2>
+                        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
                             {conversations.length === 0 ? (
-                                <div className="p-6 text-center text-gray-400">
-                                    No conversations yet. Send a WhatsApp message to get started!
+                                <div className="px-4 py-10 text-center text-gray-400 text-sm">
+                                    No conversations yet. Send a WhatsApp message to get started.
                                 </div>
                             ) : (
                                 conversations.map((c) => (
                                     <Link
                                         key={c.id}
                                         href={`/dashboard/conversation/${c.id}`}
-                                        className="block p-4 hover:bg-purple-50 transition-colors"
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50/50 transition-colors"
                                     >
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="font-semibold text-gray-800">
-                                                {c.vendorName || c.whatsappNumber}
-                                            </span>
-                                            <span className="text-xs text-gray-400">
-                                                {c.lastMessageAt
-                                                    ? new Date(c.lastMessageAt).toLocaleString()
-                                                    : '—'}
-                                            </span>
+                                        <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            {(c.vendorName || c.whatsappNumber).charAt(0).toUpperCase()}
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm text-gray-500 truncate max-w-[300px]">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="font-medium text-gray-900 text-sm truncate">
+                                                    {c.vendorName || c.whatsappNumber}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 flex-shrink-0">
+                                                    {c.lastMessageAt
+                                                        ? timeAgo(c.lastMessageAt)
+                                                        : '—'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-400 truncate mt-0.5">
                                                 {c.lastMessage?.content || 'No messages'}
                                             </p>
-                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                                                {c.messageCount} msgs
-                                            </span>
                                         </div>
+                                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded flex-shrink-0">
+                                            {c.messageCount}
+                                        </span>
                                     </Link>
                                 ))
                             )}
                         </div>
                     </section>
 
-                    {/* Recent Actions */}
-                    <section>
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">Recent Tool Actions</h2>
-                        <div className="bg-white rounded-2xl shadow-sm border border-purple-100 divide-y divide-gray-100">
+                    {/* Actions — takes 2/5 */}
+                    <section className="lg:col-span-2">
+                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Tool Actions</h2>
+                        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
                             {recentActions.length === 0 ? (
-                                <div className="p-6 text-center text-gray-400">
-                                    No actions yet. The AI agent will log tool calls here.
+                                <div className="px-4 py-10 text-center text-gray-400 text-sm">
+                                    No tool calls yet.
                                 </div>
                             ) : (
                                 recentActions.map((a) => (
-                                    <div key={a.id} className="p-4">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className={a.success ? 'text-green-500' : 'text-red-500'}>
-                                                    {a.success ? '✅' : '❌'}
-                                                </span>
-                                                <span className="font-mono text-sm font-medium text-gray-800">
+                                    <div key={a.id} className="px-4 py-2.5">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`w-1.5 h-1.5 rounded-full ${a.success ? 'bg-green-400' : 'bg-red-400'}`} />
+                                                <span className="font-mono text-xs text-gray-800">
                                                     {a.action}
                                                 </span>
                                             </div>
-                                            <span className="text-xs text-gray-400">
+                                            <span className="text-[10px] text-gray-400">
                                                 {a.durationMs ? `${a.durationMs}ms` : '—'}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-gray-500">
-                                            {a.whatsappNumber} • {new Date(a.createdAt).toLocaleString()}
+                                        <p className="text-[10px] text-gray-400 mt-0.5 pl-3">
+                                            {timeAgo(a.createdAt)}
                                         </p>
                                     </div>
                                 ))
@@ -197,25 +187,23 @@ export default function DashboardPage() {
     );
 }
 
-function StatCard({
-    label,
-    value,
-    sub,
-    emoji,
-}: {
-    label: string;
-    value: number | string;
-    sub: string;
-    emoji: string;
-}) {
+function StatCard({ label, value, sub }: { label: string; value: number | string; sub: string }) {
     return (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-purple-100">
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">{label}</span>
-                <span className="text-2xl">{emoji}</span>
-            </div>
-            <div className="text-3xl font-bold text-gray-800">{value}</div>
-            <div className="text-xs text-gray-400 mt-1">{sub}</div>
+        <div className="bg-white rounded-xl p-4 border border-gray-100">
+            <div className="text-[10px] text-gray-400 uppercase tracking-wider">{label}</div>
+            <div className="text-2xl font-bold text-gray-900 mt-1">{value}</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>
         </div>
     );
+}
+
+function timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d`;
 }

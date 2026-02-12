@@ -16,7 +16,6 @@
     "tunnel": "ngrok http 3000"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
     "@prisma/client": "^6.3.0",
     "axios": "^1.7.0",
     "bcryptjs": "^2.4.3",
@@ -25,6 +24,7 @@
     "framer-motion": "^11.15.0",
     "jose": "^5.2.0",
     "next": "^15.1.0",
+    "openai": "^6.21.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.4.1",

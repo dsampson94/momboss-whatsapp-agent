@@ -148,22 +148,21 @@ async function testConnection() {
         }
     }
 
-    // Test 6: Anthropic API Key
-    console.log('\n--- Test 6: Anthropic (Claude) API ---');
-    const anthropicKey = process.env.ANTHROPIC_API_KEY || '';
-    if (!anthropicKey) {
-        console.log('⏭️  Skipped — no ANTHROPIC_API_KEY set');
+    // Test 6: OpenAI API Key
+    console.log('\n--- Test 6: OpenAI (GPT) API ---');
+    const openaiKey = process.env.OPENAI_API_KEY || '';
+    if (!openaiKey) {
+        console.log('⏭️  Skipped — no OPENAI_API_KEY set');
     } else {
         try {
-            const res = await fetch('https://api.anthropic.com/v1/messages', {
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': anthropicKey,
-                    'anthropic-version': '2023-06-01',
+                    'Authorization': `Bearer ${openaiKey}`,
                 },
                 body: JSON.stringify({
-                    model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+                    model: process.env.OPENAI_MODEL || 'gpt-4o',
                     max_tokens: 50,
                     messages: [{ role: 'user', content: 'Say "MomBoss AI ready!" in exactly those words.' }],
                 }),
@@ -172,16 +171,16 @@ async function testConnection() {
 
             if (res.ok) {
                 const data = await res.json();
-                const text = data.content?.[0]?.text || '';
-                console.log(`✅ Claude API working!`);
+                const text = data.choices?.[0]?.message?.content || '';
+                console.log(`✅ OpenAI API working!`);
                 console.log(`   Response: "${text}"`);
                 console.log(`   Model: ${data.model}`);
             } else {
                 const err = await res.json().catch(() => ({}));
-                console.log(`❌ Claude API error (${res.status}): ${err.error?.message || res.statusText}`);
+                console.log(`❌ OpenAI API error (${res.status}): ${err.error?.message || res.statusText}`);
             }
         } catch (e: any) {
-            console.log(`❌ Claude API failed: ${e.message}`);
+            console.log(`❌ OpenAI API failed: ${e.message}`);
         }
     }
 
