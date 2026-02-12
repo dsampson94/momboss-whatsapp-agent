@@ -27,10 +27,10 @@ import { executeTool } from './tool-executor';
 // ============================================
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: (process.env.OPENAI_API_KEY || '').trim(),
 });
 
-const MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
+const MODEL = (process.env.OPENAI_MODEL || 'gpt-4o').trim();
 const MAX_TOKENS = 1024;
 const MAX_TOOL_ROUNDS = 5; // Safety limit: max tool-call rounds per message
 
