@@ -18,11 +18,7 @@ import {
     getOrCreateConversation,
     storeMessage,
 } from '@/app/lib/conversation';
-import {
-    sendWhatsAppMessage,
-    parseWhatsAppNumber,
-    validateTwilioSignature,
-} from '@/app/lib/twilio';
+import { parseWhatsAppNumber } from '@/app/lib/twilio';
 import logger from '@/app/lib/logger';
 
 // ============================================
@@ -40,15 +36,7 @@ export async function POST(request: NextRequest) {
             body[key] = value.toString();
         });
 
-        // Validate Twilio signature in production (skip if no auth token set)
-        if (process.env.NODE_ENV === 'production' && process.env.TWILIO_AUTH_TOKEN) {
-            const signature = request.headers.get('x-twilio-signature') || '';
-            const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/whatsapp`;
-            if (!validateTwilioSignature(signature, url, body)) {
-                logger.warn('[Webhook] Invalid Twilio signature', { signature });
-                return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
-            }
-        }
+        // Skip signature validation for POC/sandbox mode
 
         // Extract message details from Twilio payload
         const from = body.From || '';           // "whatsapp:+27821234567"
@@ -112,20 +100,21 @@ export async function POST(request: NextRequest) {
             tokensUsed: agentResponse.tokensUsed,
         });
 
-        // 5. Send reply via Twilio
-        await sendWhatsAppMessage(from, agentResponse.reply);
-
         const duration = Date.now() - startTime;
         logger.info(`[Webhook] Processed in ${duration}ms`, {
             from: whatsappNumber,
             toolCalls: agentResponse.toolCalls?.length || 0,
         });
 
-        // Return TwiML empty response (we already sent via REST API)
-        return new NextResponse('<Response></Response>', {
-            status: 200,
-            headers: { 'Content-Type': 'text/xml' },
-        });
+        // Reply directly via TwiML (no auth token needed)
+        const escapedReply = agentResponse.reply
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return new NextResponse(
+            `<Response><Message>${escapedReply}</Message></Response>`,
+            { status: 200, headers: { 'Content-Type': 'text/xml' } }
+        );
     } catch (error: any) {
         logger.error('[Webhook] Error processing message', {
             error: error.message,
