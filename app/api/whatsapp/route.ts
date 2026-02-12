@@ -21,6 +21,9 @@ import {
 import { parseWhatsAppNumber } from '@/app/lib/twilio';
 import logger from '@/app/lib/logger';
 
+// Allow up to 60s for GPT + tool calls on Vercel
+export const maxDuration = 60;
+
 // ============================================
 // POST — Handle Incoming WhatsApp Message
 // ============================================
@@ -107,7 +110,12 @@ export async function POST(request: NextRequest) {
         });
 
         // Reply directly via TwiML (no auth token needed)
-        const escapedReply = agentResponse.reply
+        // Twilio TwiML has a ~1600 char limit per message
+        let reply = agentResponse.reply;
+        if (reply.length > 1500) {
+            reply = reply.substring(0, 1497) + '...';
+        }
+        const escapedReply = reply
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');

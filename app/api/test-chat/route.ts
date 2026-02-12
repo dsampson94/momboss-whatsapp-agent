@@ -18,6 +18,8 @@ import {
 } from '@/app/lib/conversation';
 import logger from '@/app/lib/logger';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
     const startTime = Date.now();
 
