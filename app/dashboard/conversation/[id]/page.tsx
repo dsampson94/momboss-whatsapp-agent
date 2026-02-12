@@ -55,50 +55,48 @@ export default function ConversationPage() {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-pink-500 text-sm animate-pulse">Loading...</div>
+                <p className="text-pink-500 text-lg animate-pulse">Loading conversation...</p>
             </div>
         );
     }
 
     if (!conversation) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-                <p className="text-gray-400 text-sm">Conversation not found</p>
-                <Link href="/dashboard" className="text-pink-500 text-sm hover:underline">
-                    ← Back
+            <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+                <p className="text-gray-500 text-base">Conversation not found</p>
+                <Link href="/dashboard" className="text-pink-500 hover:underline">
+                    Back to Dashboard
                 </Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-white flex flex-col">
             {/* Header */}
-            <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sticky top-0 z-10">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <Link href="/dashboard" className="text-pink-500 hover:text-pink-600 text-sm flex-shrink-0">
-                            ←
-                        </Link>
-                        <div className="w-7 h-7 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                            {(conversation.vendorName || conversation.whatsappNumber).charAt(0).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="font-medium text-gray-900 text-sm truncate">
-                                {conversation.vendorName || conversation.whatsappNumber}
-                            </h1>
-                            <p className="text-[10px] text-gray-400 truncate">
-                                {conversation.whatsappNumber}
-                                {conversation.vendorLink?.verified && (
-                                    <span className="ml-1.5 text-green-500">
-                                        ✓ {conversation.vendorLink.storeName}
-                                    </span>
-                                )}
-                            </p>
-                        </div>
+            <header className="border-b border-gray-100 px-6 py-4 sticky top-0 z-10 bg-white">
+                <div className="max-w-3xl mx-auto flex items-center gap-4">
+                    <Link href="/dashboard" className="text-pink-500 hover:text-pink-600 text-lg font-bold">
+                        &larr;
+                    </Link>
+                    <div className="w-10 h-10 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-base font-bold flex-shrink-0">
+                        {(conversation.vendorName || conversation.whatsappNumber).charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <h1 className="font-bold text-gray-900 truncate">
+                            {conversation.vendorName || conversation.whatsappNumber}
+                        </h1>
+                        <p className="text-sm text-gray-400 truncate">
+                            {conversation.whatsappNumber}
+                            {conversation.vendorLink?.verified && (
+                                <span className="ml-2 text-green-500 font-medium">
+                                    Verified
+                                </span>
+                            )}
+                        </p>
                     </div>
                     <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${
+                        className={`text-xs px-2 py-1 rounded-lg font-medium flex-shrink-0 ${
                             conversation.status === 'ACTIVE'
                                 ? 'bg-green-50 text-green-600'
                                 : conversation.status === 'HANDED_OFF'
@@ -112,28 +110,28 @@ export default function ConversationPage() {
             </header>
 
             {/* Messages */}
-            <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-4">
-                <div className="space-y-3">
+            <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-6">
+                <div className="space-y-4">
                     {conversation.messages.map((msg) => (
                         <div
                             key={msg.id}
                             className={`flex ${msg.direction === 'INBOUND' ? 'justify-start' : 'justify-end'}`}
                         >
                             <div
-                                className={
+                                className={`max-w-[80%] rounded-2xl px-5 py-3 ${
                                     msg.direction === 'INBOUND'
-                                        ? 'chat-bubble-agent'
-                                        : 'chat-bubble-user'
-                                }
+                                        ? 'bg-gray-50 text-gray-900'
+                                        : 'bg-pink-500 text-white'
+                                }`}
                             >
                                 {msg.mediaUrl && (
                                     <a
                                         href={msg.mediaUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-pink-500 text-xs hover:underline block mb-1"
+                                        className={`text-sm underline block mb-1 ${msg.direction === 'INBOUND' ? 'text-pink-500' : 'text-pink-100'}`}
                                     >
-                                        Attachment
+                                        View attachment
                                     </a>
                                 )}
 
@@ -142,22 +140,21 @@ export default function ConversationPage() {
                                 )}
 
                                 {msg.toolCalls && (
-                                    <div className="mt-1.5 text-[10px] text-pink-400 font-medium">
+                                    <div className={`mt-2 text-xs font-medium ${msg.direction === 'INBOUND' ? 'text-pink-400' : 'text-pink-200'}`}>
                                         {Array.isArray(msg.toolCalls) ? msg.toolCalls.length : 1} tool call(s)
                                     </div>
                                 )}
 
-                                <div className={`text-[10px] mt-1 ${msg.direction === 'INBOUND' ? 'text-gray-400' : 'text-pink-200'} text-right`}>
+                                <div className={`text-xs mt-2 text-right ${msg.direction === 'INBOUND' ? 'text-gray-400' : 'text-pink-200'}`}>
                                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    {msg.tokensUsed ? ` · ${msg.tokensUsed} tok` : ''}
                                 </div>
                             </div>
                         </div>
                     ))}
 
                     {conversation.messages.length === 0 && (
-                        <div className="text-center text-gray-400 text-sm py-16">
-                            No messages yet.
+                        <div className="text-center text-gray-400 py-20">
+                            <p className="text-base">No messages yet</p>
                         </div>
                     )}
                 </div>

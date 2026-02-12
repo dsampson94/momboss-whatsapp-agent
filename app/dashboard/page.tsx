@@ -61,127 +61,111 @@ export default function DashboardPage() {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-pink-500 text-sm animate-pulse">Loading...</div>
+                <p className="text-pink-500 text-lg animate-pulse">Loading dashboard...</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-white">
             {/* Header */}
-            <header className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3">
-                <div className="max-w-5xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Link href="/" className="text-lg font-bold text-gray-900 tracking-tight">
-                            <span className="text-pink-500">MB</span> Agent
-                        </Link>
-                        <span className="text-[10px] bg-pink-50 text-pink-500 px-1.5 py-0.5 rounded font-medium">
-                            DASH
-                        </span>
-                    </div>
-                    <div className="flex gap-2">
-                        <Link
-                            href="/api/test-chat"
-                            className="text-xs text-gray-500 hover:text-gray-900 px-2 py-1 transition-colors"
-                        >
-                            Test Chat
-                        </Link>
-                        <Link
-                            href="/api/health"
-                            className="text-xs text-gray-500 hover:text-gray-900 px-2 py-1 transition-colors"
-                        >
-                            Health
-                        </Link>
-                    </div>
+            <header className="border-b border-gray-100 px-6 py-4">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
+                    <Link href="/" className="text-lg font-bold text-gray-900">
+                        <span className="text-pink-500">MB</span> Dashboard
+                    </Link>
+                    <Link
+                        href="/api/test-chat"
+                        className="bg-pink-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-pink-600 transition-colors"
+                    >
+                        Test Chat
+                    </Link>
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-                {/* Stats */}
+            <main className="max-w-3xl mx-auto px-6 py-8 space-y-10">
+                {/* Stats row */}
                 {stats && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <StatCard label="Conversations" value={stats.conversations.total} sub={`${stats.conversations.active} active`} />
                         <StatCard label="Messages Today" value={stats.messages.today} sub={`${stats.messages.thisWeek} this week`} />
-                        <StatCard label="Tool Calls" value={stats.actions.total} sub={`${stats.actions.successRate} ok`} />
+                        <StatCard label="Tool Calls" value={stats.actions.total} sub={`${stats.actions.successRate} success`} />
                         <StatCard label="Vendors" value={stats.vendors.verified} sub="verified" />
                     </div>
                 )}
 
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                    {/* Conversations — takes 3/5 */}
-                    <section className="lg:col-span-3">
-                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Conversations</h2>
-                        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
-                            {conversations.length === 0 ? (
-                                <div className="px-4 py-10 text-center text-gray-400 text-sm">
-                                    No conversations yet. Send a WhatsApp message to get started.
-                                </div>
-                            ) : (
-                                conversations.map((c) => (
-                                    <Link
-                                        key={c.id}
-                                        href={`/dashboard/conversation/${c.id}`}
-                                        className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50/50 transition-colors"
-                                    >
-                                        <div className="w-8 h-8 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                            {(c.vendorName || c.whatsappNumber).charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="font-medium text-gray-900 text-sm truncate">
-                                                    {c.vendorName || c.whatsappNumber}
-                                                </span>
-                                                <span className="text-[10px] text-gray-400 flex-shrink-0">
-                                                    {c.lastMessageAt
-                                                        ? timeAgo(c.lastMessageAt)
-                                                        : '—'}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-400 truncate mt-0.5">
-                                                {c.lastMessage?.content || 'No messages'}
-                                            </p>
-                                        </div>
-                                        <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded flex-shrink-0">
-                                            {c.messageCount}
-                                        </span>
-                                    </Link>
-                                ))
-                            )}
+                {/* Conversations */}
+                <section>
+                    <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Conversations</h2>
+                    {conversations.length === 0 ? (
+                        <div className="bg-gray-50 rounded-xl py-12 text-center">
+                            <p className="text-gray-500 text-base">No conversations yet</p>
+                            <p className="text-gray-400 text-sm mt-1">Send a WhatsApp message to get started</p>
                         </div>
-                    </section>
-
-                    {/* Actions — takes 2/5 */}
-                    <section className="lg:col-span-2">
-                        <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Tool Actions</h2>
-                        <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50 overflow-hidden">
-                            {recentActions.length === 0 ? (
-                                <div className="px-4 py-10 text-center text-gray-400 text-sm">
-                                    No tool calls yet.
-                                </div>
-                            ) : (
-                                recentActions.map((a) => (
-                                    <div key={a.id} className="px-4 py-2.5">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${a.success ? 'bg-green-400' : 'bg-red-400'}`} />
-                                                <span className="font-mono text-xs text-gray-800">
-                                                    {a.action}
-                                                </span>
-                                            </div>
-                                            <span className="text-[10px] text-gray-400">
-                                                {a.durationMs ? `${a.durationMs}ms` : '—'}
-                                            </span>
+                    ) : (
+                        <div className="space-y-2">
+                            {conversations.map((c) => (
+                                <Link
+                                    key={c.id}
+                                    href={`/dashboard/conversation/${c.id}`}
+                                    className="flex items-center gap-4 bg-gray-50 hover:bg-pink-50 rounded-xl px-5 py-4 transition-colors"
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-pink-100 text-pink-500 flex items-center justify-center text-base font-bold flex-shrink-0">
+                                        {(c.vendorName || c.whatsappNumber).charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-gray-900 truncate">
+                                            {c.vendorName || c.whatsappNumber}
                                         </div>
-                                        <p className="text-[10px] text-gray-400 mt-0.5 pl-3">
-                                            {timeAgo(a.createdAt)}
+                                        <p className="text-sm text-gray-400 truncate">
+                                            {c.lastMessage?.content || 'No messages'}
                                         </p>
                                     </div>
-                                ))
-                            )}
+                                    <div className="text-right flex-shrink-0">
+                                        <div className="text-xs text-gray-400">
+                                            {c.lastMessageAt ? timeAgo(c.lastMessageAt) : ''}
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-0.5">
+                                            {c.messageCount} msg{c.messageCount !== 1 ? 's' : ''}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
-                    </section>
-                </div>
+                    )}
+                </section>
+
+                {/* Tool Actions */}
+                <section>
+                    <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Tool Actions</h2>
+                    {recentActions.length === 0 ? (
+                        <div className="bg-gray-50 rounded-xl py-12 text-center">
+                            <p className="text-gray-500 text-base">No tool calls yet</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {recentActions.map((a) => (
+                                <div key={a.id} className="flex items-center gap-4 bg-gray-50 rounded-xl px-5 py-3">
+                                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${a.success ? 'bg-green-400' : 'bg-red-400'}`} />
+                                    <div className="flex-1 min-w-0">
+                                        <span className="font-medium text-gray-900 text-sm">{a.action}</span>
+                                    </div>
+                                    <div className="text-right flex-shrink-0 text-xs text-gray-400">
+                                        <div>{a.durationMs ? `${a.durationMs}ms` : ''}</div>
+                                        <div>{timeAgo(a.createdAt)}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </section>
+
+                {/* Quick links */}
+                <section className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <Link href="/" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">Home</Link>
+                    <Link href="/api/health" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">Health Check</Link>
+                    <Link href="/api/test-chat" className="text-sm text-gray-400 hover:text-pink-500 transition-colors">Test Chat</Link>
+                </section>
             </main>
         </div>
     );
@@ -189,10 +173,10 @@ export default function DashboardPage() {
 
 function StatCard({ label, value, sub }: { label: string; value: number | string; sub: string }) {
     return (
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="text-[10px] text-gray-400 uppercase tracking-wider">{label}</div>
-            <div className="text-2xl font-bold text-gray-900 mt-1">{value}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>
+        <div className="bg-gray-50 rounded-xl p-5">
+            <div className="text-xs text-gray-400 uppercase tracking-wider">{label}</div>
+            <div className="text-3xl font-bold text-gray-900 mt-1">{value}</div>
+            <div className="text-sm text-gray-400 mt-1">{sub}</div>
         </div>
     );
 }
@@ -201,9 +185,9 @@ function timeAgo(dateStr: string): string {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'now';
-    if (mins < 60) return `${mins}m`;
+    if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h`;
+    if (hrs < 24) return `${hrs}h ago`;
     const days = Math.floor(hrs / 24);
-    return `${days}d`;
+    return `${days}d ago`;
 }
