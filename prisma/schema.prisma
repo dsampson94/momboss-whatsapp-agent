@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CONVERSATIONS & MESSAGES
+// ============================================
+
+model Conversation {
+  id              String    @id @default(cuid())
+  whatsappNumber  String    // The vendor's WhatsApp number
+  vendorName      String?   // Display name from WhatsApp profile
+  wpUserId        Int?      // Linked WordPress/Dokan user ID
+  wpStoreId       Int?      // Linked Dokan store ID
+  status          ConversationStatus @default(ACTIVE)
+  isHandedOff     Boolean   @default(false)
+  lastMessageAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  messages        Message[]
+
+  @@unique([whatsappNumber])
+  @@index([status])
+  @@index([whatsappNumber])
+}
+
+model Message {
+  id              String    @id @default(cuid())
+  conversationId  String
+  direction       MessageDirection
+  senderType      SenderType
+  content         String?   @db.Text
+  contentType     ContentType @default(TEXT)
+  mediaUrl        String?   // For images, documents sent via WhatsApp
+  twilioSid       String?   @unique // Twilio message SID for tracking
+  toolCalls       Json?     // AI tool calls made for this message
+  wpAction        String?   // What WordPress action was taken (e.g., "create_product")
+  wpResult        Json?     // Result from WordPress API
+  tokensUsed      Int?      // Claude tokens used
+  createdAt       DateTime  @default(now())
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+// ============================================
+// VENDOR LINKING
+// ============================================
+
+model VendorLink {
+  id              String    @id @default(cuid())
+  whatsappNumber  String    @unique
+  wpUserId        Int       // WordPress user ID
+  wpStoreId       Int?      // Dokan store/vendor ID
+  storeName       String?
+  storeUrl        String?
+  verified        Boolean   @default(false)
+  verifiedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([wpUserId])
+}
+
+// ============================================
+// AGENT ACTION LOG
+// ============================================
+
+model ActionLog {
+  id              String    @id @default(cuid())
+  whatsappNumber  String
+  action          String    // e.g., "create_product", "list_orders", "create_event"
+  toolName        String    // The tool function that was called
+  input           Json?     // What was sent to the tool
+  output          Json?     // What came back
+  success         Boolean   @default(true)
+  errorMessage    String?
+  durationMs      Int?      // How long the action took
+  createdAt       DateTime  @default(now())
+
+  @@index([whatsappNumber])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum ConversationStatus {
+  ACTIVE
+  RESOLVED
+  HANDED_OFF
+}
+
+enum MessageDirection {
+  INBOUND   // From WhatsApp user
+  OUTBOUND  // From our agent
+}
+
+enum SenderType {
+  USER
+  AGENT
+  SYSTEM
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  AUDIO
+  LOCATION
+}

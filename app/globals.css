@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+    --color-primary: #7c3aed;
+    --color-primary-light: #a78bfa;
+    --color-primary-dark: #5b21b6;
+    --color-accent: #f59e0b;
+    --color-success: #10b981;
+    --color-danger: #ef4444;
+    --color-bg: #faf5ff;
+    --color-surface: #ffffff;
+    --color-text: #1f2937;
+    --color-text-muted: #6b7280;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+/* WhatsApp-style chat bubble for the dashboard */
+.chat-bubble-user {
+    background: #dcf8c6;
+    border-radius: 12px 12px 0 12px;
+    padding: 8px 12px;
+    max-width: 80%;
+    margin-left: auto;
+}
+
+.chat-bubble-agent {
+    background: white;
+    border-radius: 12px 12px 12px 0;
+    padding: 8px 12px;
+    max-width: 80%;
+    border: 1px solid #e5e7eb;
+}
