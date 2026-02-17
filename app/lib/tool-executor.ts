@@ -195,8 +195,9 @@ async function handleVerifyVendor(
             };
         }
 
-        // Strategy 2: Look up by email — search through vendors
+        // Strategy 2: Look up by email — try Dokan first, then WooCommerce fallback
         if (input.store_email) {
+            // Try Dokan vendor list first
             const vendorsResult = await wp.listVendors({ per_page: 100 });
             if (vendorsResult.success) {
                 const match = vendorsResult.vendors.find(
@@ -221,12 +222,36 @@ async function handleVerifyVendor(
                         message: `Successfully linked to store "${match.store_name}"!`,
                     };
                 }
+            }
+
+            // Fallback: search WooCommerce customers by email
+            const customerResult = await wp.searchCustomerByEmail(input.store_email);
+            if (customerResult.success && customerResult.customer) {
+                const customer = customerResult.customer;
+                const displayName = [customer.first_name, customer.last_name].filter(Boolean).join(' ') || customer.username || 'Vendor';
+
+                await linkVendor({
+                    whatsappNumber: context.whatsappNumber,
+                    wpUserId: customer.id,
+                    wpStoreId: customer.id,
+                    storeName: displayName,
+                });
 
                 return {
-                    success: false,
-                    error: 'Could not find a store with that email address. Please check and try again, or provide your store ID instead.',
+                    success: true,
+                    verified: true,
+                    vendor: {
+                        store_name: displayName,
+                        store_id: customer.id,
+                    },
+                    message: `Successfully linked to account "${displayName}"!`,
                 };
             }
+
+            return {
+                success: false,
+                error: 'Could not find a store with that email address. Please check and try again, or provide your store ID instead.',
+            };
         }
 
         return {

@@ -4,10 +4,14 @@
  * GET /api/admin/stats — Get overview statistics
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
+import { requireAdmin } from '@/app/lib/admin-auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    const authError = requireAdmin(request);
+    if (authError) return authError;
+
     try {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

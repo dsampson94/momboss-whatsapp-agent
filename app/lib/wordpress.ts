@@ -273,6 +273,69 @@ export async function updateOrderStatus(orderId: number, status: string) {
 }
 
 // ============================================
+// CUSTOMER LOOKUP (via WooCommerce API)
+// ============================================
+
+/**
+ * Search for a WooCommerce customer by email.
+ * This uses the WooCommerce REST API (not Dokan) so it works without
+ * a WordPress App Password.
+ *
+ * Note: WooCommerce's `email` filter doesn't always match admin/vendor roles,
+ * so we also fall back to a `search` query and verify the email matches.
+ */
+export async function searchCustomerByEmail(email: string) {
+    try {
+        // Try exact email filter first
+        const { data } = await wooClient.get('/customers', {
+            params: { email, per_page: 1 },
+        });
+        if (data && data.length > 0) {
+            const c = data[0];
+            return {
+                success: true,
+                customer: {
+                    id: c.id,
+                    email: c.email,
+                    first_name: c.first_name,
+                    last_name: c.last_name,
+                    username: c.username,
+                    role: c.role,
+                },
+            };
+        }
+
+        // Fallback: search by keyword (catches admins/vendors that email filter misses)
+        const { data: searchData } = await wooClient.get('/customers', {
+            params: { search: email, per_page: 10, role: 'all' },
+        });
+        if (searchData && searchData.length > 0) {
+            // Verify we got an exact email match from the search results
+            const match = searchData.find(
+                (c: any) => c.email?.toLowerCase() === email.toLowerCase()
+            );
+            if (match) {
+                return {
+                    success: true,
+                    customer: {
+                        id: match.id,
+                        email: match.email,
+                        first_name: match.first_name,
+                        last_name: match.last_name,
+                        username: match.username,
+                        role: match.role,
+                    },
+                };
+            }
+        }
+
+        return { success: false, error: 'No customer found with that email' };
+    } catch (error) {
+        return { success: false, error: handleApiError(error, 'Search customer by email') };
+    }
+}
+
+// ============================================
 // DOKAN VENDORS / STORES
 // ============================================
 

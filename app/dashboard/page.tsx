@@ -39,9 +39,14 @@ export default function DashboardPage() {
     useEffect(() => {
         async function load() {
             try {
+                // Pass admin key via query param for browser-based dashboard access
+                const adminKey = typeof window !== 'undefined'
+                    ? new URLSearchParams(window.location.search).get('key') || ''
+                    : '';
+                const keyParam = adminKey ? `?key=${encodeURIComponent(adminKey)}` : '';
                 const [statsRes, convoRes] = await Promise.all([
-                    fetch('/api/admin/stats'),
-                    fetch('/api/admin/conversations?limit=10'),
+                    fetch(`/api/admin/stats${keyParam}`),
+                    fetch(`/api/admin/conversations${keyParam ? keyParam + '&' : '?'}limit=10`),
                 ]);
                 const statsData = await statsRes.json();
                 const convoData = await convoRes.json();

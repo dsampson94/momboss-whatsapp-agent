@@ -18,7 +18,8 @@ import {
     getOrCreateConversation,
     storeMessage,
 } from '@/app/lib/conversation';
-import { parseWhatsAppNumber } from '@/app/lib/twilio';
+import { parseWhatsAppNumber, validateTwilioSignature } from '@/app/lib/twilio';
+import { checkRateLimit } from '@/app/lib/rate-limit';
 import logger from '@/app/lib/logger';
 
 // Allow up to 60s for GPT + tool calls on Vercel
@@ -39,7 +40,18 @@ export async function POST(request: NextRequest) {
             body[key] = value.toString();
         });
 
-        // Skip signature validation for POC/sandbox mode
+        // Validate Twilio signature in production
+        if (process.env.NODE_ENV === 'production' && process.env.TWILIO_AUTH_TOKEN) {
+            const signature = request.headers.get('x-twilio-signature') || '';
+            const url = request.url;
+            if (!validateTwilioSignature(signature, url, body)) {
+                logger.warn('[Webhook] Invalid Twilio signature — rejecting request');
+                return new NextResponse('<Response></Response>', {
+                    status: 403,
+                    headers: { 'Content-Type': 'text/xml' },
+                });
+            }
+        }
 
         // Extract message details from Twilio payload
         const from = body.From || '';           // "whatsapp:+27821234567"
@@ -55,6 +67,15 @@ export async function POST(request: NextRequest) {
         }
 
         const whatsappNumber = parseWhatsAppNumber(from);
+
+        // Rate limit: 20 messages per minute per number
+        if (!checkRateLimit(whatsappNumber, 20, 60_000)) {
+            logger.warn(`[Webhook] Rate limited: ${whatsappNumber}`);
+            return new NextResponse(
+                '<Response><Message>You\'re sending messages too fast. Please wait a moment and try again.</Message></Response>',
+                { status: 200, headers: { 'Content-Type': 'text/xml' } }
+            );
+        }
 
         logger.info('[Webhook] Incoming message', {
             from: whatsappNumber,

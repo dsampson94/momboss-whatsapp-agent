@@ -6,8 +6,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
+import { requireAdmin } from '@/app/lib/admin-auth';
 
 export async function GET(request: NextRequest) {
+    const authError = requireAdmin(request);
+    if (authError) return authError;
+
     try {
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get('page') || '1', 10);

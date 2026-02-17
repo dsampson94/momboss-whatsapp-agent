@@ -6,11 +6,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
+import { requireAdmin } from '@/app/lib/admin-auth';
 
 export async function GET(
-    _request: NextRequest,
+    request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const authError = requireAdmin(request);
+    if (authError) return authError;
+
     try {
         const { id } = await params;
 
